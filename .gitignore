@@ -11,9 +11,13 @@ build/
 # Playwright / browser profiles
 .browser-profile/
 data/scraped/.browser-profile/
+data/scraped/.browser-profile-w*/
 
 # Scraped HTML cache (regenerate with scrape_chapter.py)
 data/scraped/*.html
+data/scraped/book*_chapter_*_raw.txt
+data/scraped/books_3_to_12_fetch.log
+data/scraped/books_3_to_12_manifest.csv
 
 # Scrape logs
 data/scraped/*_scrape.log
