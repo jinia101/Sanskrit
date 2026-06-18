@@ -16,6 +16,8 @@ BASE = "https://www.wisdomlib.org/hinduism/book/bhagavata-purana-sanskrit/d/doc1
 CHAPTERS = {
     1: (1003, 1041),  # verses 2.1.1 - 2.1.39
     2: (1043, 1079),  # approximate; verify from index
+    3: (1083, 1108),  # verses 2.3.1 - 2.3.26
+    4: (1110, 1135),  # verses 2.4.1 - 2.4.26
     5: (1137, 1179),  # verses 2.5.1 - 2.5.42 + colophon 2.5.43
     6: (1181, 1226),  # verses 2.6.1 - 2.6.45 + colophon 2.6.46
     7: (1228, 1281),  # verses 2.7.1 - 2.7.52 + colophon 2.7.53-54
@@ -35,6 +37,16 @@ def chapter_verse_urls(chapter: int) -> list[tuple[str, str]]:
         return [
             (f"2.2.{n}", BASE.format(doc_id=1043 + n))
             for n in range(1, 38)
+        ]
+    if chapter == 3:
+        return [
+            (f"2.3.{n}", BASE.format(doc_id=1082 + n))
+            for n in range(1, 27)
+        ]
+    if chapter == 4:
+        return [
+            (f"2.4.{n}", BASE.format(doc_id=1109 + n))
+            for n in range(1, 27)
         ]
     if chapter == 5:
         return [
@@ -184,13 +196,31 @@ def scrape_chapter(chapter: int, out_dir: Path, delay: float = 1.5) -> Path:
 
         for i, (verse_ref, url) in enumerate(urls, 1):
             print(f"[{i}/{len(urls)}] {verse_ref} ...", flush=True)
-            page.goto(url, wait_until="domcontentloaded", timeout=120000)
+            success = False
+            for attempt in range(1, 4):
+                try:
+                    page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                    success = True
+                    break
+                except Exception as exc:
+                    print(f"  WARN: Navigation failed on attempt {attempt}: {exc}", flush=True)
+                    time.sleep(5)
+            if not success:
+                print(f"  ERROR: Failed to load {url} after 3 attempts", flush=True)
+                chunks.append(f"verse {verse_ref}\n\n# SCRAPE ERROR: Failed to load page\n")
+                continue
+
             for _ in range(45):
                 title = page.title()
                 if title and "Verse" in title and "Just a moment" not in title:
                     break
                 time.sleep(1)
-            page.wait_for_selector("text=Analysis of Sanskrit grammar", timeout=60000)
+            
+            try:
+                page.wait_for_selector("text=Analysis of Sanskrit grammar", timeout=60000)
+            except Exception as exc:
+                print(f"  WARN: wait_for_selector failed: {exc}", flush=True)
+
             html = page.content()
             try:
                 text = extract_analysis_text(html, verse_ref)
