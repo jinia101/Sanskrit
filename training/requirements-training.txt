@@ -1,0 +1,9 @@
+# Colab ships torchao 0.10.x; recent peft rejects it. Uninstall before training:
+#   pip uninstall -y torchao
+datasets>=2.19.0
+transformers>=4.44.0
+accelerate>=0.33.0
+peft>=0.12.0
+trl>=0.9.6
+bitsandbytes>=0.43.0
+sentencepiece>=0.2.0
